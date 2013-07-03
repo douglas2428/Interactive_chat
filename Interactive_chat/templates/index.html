@@ -1,0 +1,201 @@
+<html>
+ <head>
+ <link href="/public/css/bootstrap.min.css" rel="stylesheet" media="screen">
+ <link rel="stylesheet" href="/public/css/style.css" type="text/css" />
+  
+ 
+ 
+  <title>---CHAT---</title>
+  <script src="http://localhost:8056/socket.io/socket.io.js" type="text/javascript" language="javascript"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+  <script src="/public/js/jquery-encoder-0.1.0.js"></script>
+  <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
+  <script type="text/javascript" language="javascript"> 
+   var socket = null; 
+   var userName = null;
+   var targetUser = null
+    
+	function selectUser(user) {
+	   
+		var li_user= document.getElementById("li"+user);
+		var screen_user= document.getElementById("chat_screen"+user);
+		
+	    var li_actives=document.getElementsByClassName('tab-pane active');
+	 	var screen_actives=document.getElementsByClassName('active');
+	  
+	 	for(var i=0;i<li_actives.length;++i)
+	 		li_actives[i].className='tab-pane'
+		for(var i=0;i<screen_actives.length;++i)
+			screen_actives[i].className='' 
+				
+	   	if(li_user==null){
+		    $("#tabs").html($("#tabs").html()+"<li id=\"li"+user+"\" onclick='changeTarget(\""+user+"\")'"+
+		    		"class=active ><a href=\"#chat_screen"+user+"\" data-toggle=\"tab\">"+user+"</a></li>");
+			$("#chat_tab_content").html($("#chat_tab_content").html()+"<div id=\"chat_screen"+user+"\" class=\"tab-pane active\" ></div>");
+			
+			socket.emit("showMessages", {'user1':userName,'user2':user});
+		}
+	   	else{
+		   	li_user.className='active';
+		   	screen_user.className='tab-pane active';
+	   	}
+		   
+	   targetUser=user;
+	   
+       
+       
+   }
+    
+   function check(data) {
+       if(data.isAvailable == false) {
+        alert("El Nombre de Usuario ya fue seleccionado");
+        authenticate();
+   	   }
+   }
+    
+   function authenticate() {
+       while(userName == null|| userName=='') {
+        userName = prompt('Inserta nombre de usuario');
+       }
+       socket.emit('authData', {"userName" : userName});
+   }
+    
+   function updateUserList(data) {
+       var html="<label><b>users online</b></label>";
+       html += "<table>";
+       
+       for(var i = 0; i < data.length; i++) {
+    	   if(data[i].userName!=userName){
+		        html += "<tr class='selectable'>";
+		        html += "<td onClick='selectUser(\""+data[i].userName+"\")'>" +data[i].userName+"</td>";
+		        html += "</tr>";
+		        
+       	   }
+       }
+       html += "</table>";
+       $("#users").html(html);
+   }
+    
+   function handleMessage(data) {
+	   var userFrom=null;
+	   if(data.from ==userName)
+		   userFrom='Yo';
+	   else
+		   userFrom=data.from;
+	   
+	   if(data.type == "PUBLIC") {
+		   var htmlCurrent = $("#chat_screen").html();
+     	   htmlCurrent += "<b>" + userFrom + " : </b>" + data.message +"<br>";
+     	   $("#chat_screen").html(htmlCurrent);
+       } else {
+    	   
+    	   if(data.from !=userName){
+    		   var htmlCurrent = $("#chat_screen"+data.from).html();
+    		   htmlCurrent += "<b>" + userFrom + " : </b>" + data.message +"<br>";
+    		   $("#chat_screen"+data.from).html(htmlCurrent);
+    		   selectUser(data.from);
+    		   
+    	   }
+    	   else{
+    		   var htmlCurrent = $("#chat_screen"+targetUser).html();
+ 	   	   	   htmlCurrent += "<b>" + userFrom + " : </b>" + data.message +"<br>";
+ 	   	   	   $("#chat_screen"+targetUser).html(htmlCurrent);
+    			  
+    	   }
+    	   
+       }
+   }
+    
+   function sendMessage() {
+	   var msg = {};
+       var elm = document.getElementById("li_chat_screen");
+   
+   	   if(elm.className!='active'&& targetUser!=null){	
+   		   msg.type = "PRIVATE";
+     	   msg.to = targetUser;
+       } else {   
+     	   msg.type = "PUBLIC";
+       }
+       msg.from =  userName;
+       msg.message = $.encoder.encodeForHTML($("#message").val()); 
+    
+       $("#message").val("");
+       if(msg.message!="")
+    	   socket.emit('msg', msg);
+    
+       $('#message').focus();
+   }
+   
+   function showMessages(data){
+	   
+	   for(var i=0;i<data.length; i++){
+		   var htmlCurrent = $("#chat_screen"+targetUser).html();
+		   if(data[i].from==userName)
+			   data[i].from="Yo";
+		   htmlCurrent += "<b>" + data[i].from + " : </b>" + data[i].message +"<br>";
+		   $("#chat_screen"+targetUser).html(htmlCurrent);
+	   }
+	   
+   }
+   
+   function changeTarget(user){
+	   targetUser=user;
+   }
+   
+   $(document).ready(function() {
+	   $('#message').keypress(function(e) {
+	 	   
+			if(e.which == 13) {
+				$(this).blur();
+				$('#sendMessage').focus().click();
+			}
+		}); 
+   });
+   
+   
+   
+    
+   try {
+       socket = io.connect('http://127.0.0.1:8056');
+       socket.on('authData', check);
+       socket.on('userList', updateUserList);
+       socket.on('msg', handleMessage);
+       socket.on('showMessages', showMessages)
+    
+    
+   } catch(e) {
+       alert(e);
+   }
+    
+  </script>
+  
+  
+  
+ </head>
+ <body onLoad="authenticate();"> 
+ 	<div id="main_container">
+	  	<div id="users">
+	   		<label><b>users online</b></label>
+	  	</div>  
+	   	<div id="chat_tabs" class="tabbable">
+			<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+				<li id="li_chat_screen" onclick="changeTarget(null)" class="active"><a href="#chat_screen" data-toggle="tab">GLOBAL CHAT</a></li>
+			</ul>
+			<div id="chat_tab_content" class="tab-content">
+				<div id="chat_screen" class="tab-pane active" >
+				</div>
+			</div>
+		</div>
+   </div>
+   <div id="message_entry">
+        <input type="text" name="message" id="message" /> 
+	    
+	    <button id="sendMessage" name="sendMessage" onclick="sendMessage()">ENVIAR</button>
+   </div>
+   <div id="private_messages">
+		{% include "pizarra.html"%}
+
+   </div>
+  
+ </body>
+</html>
