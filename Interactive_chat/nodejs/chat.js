@@ -9,9 +9,10 @@ var http= require('http');
  
 var connectedClients = [];
 var userList = [];
+var players={};
 
 var options = {
-		hostname: 'localhost',
+		hostname: '127.0.0.1',
 		port: '8000',
 		path: '/',
 		method: 'GET',
@@ -165,14 +166,34 @@ io.sockets.on('connection', function(socket) {
 		 msg.message=userDisconnect+" is disconnected"
 		 socket.broadcast.emit('msg', msg);
 		 socket.broadcast.emit('userList', userList);
+		 
+		 //game.js
+		 if(players.hasOwnProperty(socket.id)) {
+			 delete players[socket.id];
+		 } 
+		 
+		 socket.broadcast.emit('updatePlayers', players);
 	 });
 	 
-	 //pizarra
-	// Start listening for mouse move events
-	    socket.on('mousemove', function (data) {
-
-	        // This line sends the event (broadcasts it)
-	        // to everyone except the originating client.
-	        socket.broadcast.emit('moving', data);
+	 
+	    //game
+	    socket.on('newPlayer', function (data) {
+	    	socket.emit('newPlayer',socket.id);
+	    	
+	    	//players.socket=socket.id;
+	    	players[socket.id] = data;
+	    		
+	        socket.emit('updatePlayers', players);
+	        socket.broadcast.emit('updatePlayers', players);
+	    });
+	    
+	    socket.on('updateVar', function (data) {
+    		socket.broadcast.emit('updateVar', data);
+	    });
+	    
+	    socket.on('movePlayer', function (data) {
+	    	players[socket.id]=data;
+	    	socket.emit('updatePlayers', players);
+    		socket.broadcast.emit('updatePlayers', players);
 	    });
 });
