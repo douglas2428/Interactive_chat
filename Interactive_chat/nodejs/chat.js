@@ -4,7 +4,6 @@ var http= require('http');
 var moment=require('moment');
 
 
-
 /*io.configure(function(){
 	  io.set('transports', ['websocket']);
 	});*/
@@ -128,12 +127,7 @@ io.sockets.on('connection', function(socket) {
 	 socket.on('authData', function(data) {
 		 	options.path='/prueba/';
 			options.method='POST';
-			var fecha = moment().format('L');
-			var fe=moment(new Date());
 			
-			console.log(moment());
-			
-			console.log("FECHA "+fe.startOf('hour').fromNow())
 			comunication_django(data,options,function(res_dj){
 				if(isUserNameAvailable(data.userName) == true) {
 					//userList.push({"userName" : data.userName});
