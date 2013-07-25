@@ -10,10 +10,15 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
   <script src="/public/js/jquery-encoder-0.1.0.js"></script>
   <script type="text/javascript" src="/public/js/bootstrap.min.js"></script>
+  <script src="/public/js/moment/min/moment.min.js"></script>
+  <script src="/public/js/moment/min/lang/es.js"></script>
   <script type="text/javascript" language="javascript"> 
    var socket = null; 
    var userName = null;
    var targetUser = null;
+   
+   var timeAgo=[];
+   
     
 	function selectUser(user) {
 	   
@@ -88,9 +93,17 @@
      	   htmlCurrent += "<b>" + userFrom + " : </b>" + data.message +"<br>";
      	   $("#chat_screen").html(htmlCurrent);
        } else {
-    	   
+    	   var htmlTimeText="";
+    	   if(!timeAgo.hasOwnProperty(targetUser+data.from)){
+    		   var timeDate=moment();
+    		   htmlTimeText="<b id=\""+targetUser+data.from+"\">"+moment().from(timeDate)+"</b><br>";
+    		   timeAgo[targetUser+data.from]=timeDate;
+    	   }
+    		   
+    		   
     	   if(data.from !=userName){
     		   var htmlCurrent = $("#chat_screen"+data.from).html();
+    		   //htmlCurrent +=htmlTimeText;
     		   htmlCurrent += "<b>" + userFrom + " : </b>" + data.message +"<br>";
     		   $("#chat_screen"+data.from).html(htmlCurrent);
     		   selectUser(data.from);
@@ -98,10 +111,13 @@
     	   }
     	   else{
     		   var htmlCurrent = $("#chat_screen"+targetUser).html();
+    		   htmlCurrent +=htmlTimeText;
  	   	   	   htmlCurrent += "<b>" + userFrom + " : </b>" + data.message +"<br>";
  	   	   	   $("#chat_screen"+targetUser).html(htmlCurrent);
     			  
     	   }
+    	   
+    	   
     	   
        }
    }
@@ -143,6 +159,7 @@
    }
    
    $(document).ready(function() {
+	   moment.lang('es');
 	   $('#message').keypress(function(e) {
 	 	   
 			if(e.which == 13) {
@@ -152,6 +169,18 @@
 		}); 
    });
    
+   function updateTimeText(){
+	   for(var cod in timeAgo){
+		   $('#'+cod).html(moment().from(timeAgo[cod]));
+		} 
+	   
+	   
+   }
+   
+   function timedUpdate () {
+	   updateTimeText();
+       setTimeout(timedUpdate, 1000);
+   }
    
    
     
@@ -166,6 +195,8 @@
    } catch(e) {
        alert(e);
    }
+   
+   timedUpdate ();
     
   </script>
   
