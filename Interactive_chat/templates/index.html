@@ -35,7 +35,7 @@
 				
 	   	if(li_user==null){
 		    $("#tabs").html($("#tabs").html()+"<li id=\"li"+user+"\" onclick='changeTarget(\""+user+"\")'"+
-		    		"class=active ><a href=\"#chat_screen"+user+"\" data-toggle=\"tab\">"+user+"</a></li>");
+		    		"class=active ><a href=\"#chat_screen"+user+"\" data-toggle=\"tab\">"+user+"<span class='close close-tab'>×</span></a></li>");
 			$("#chat_tab_content").html($("#chat_tab_content").html()+"<div id=\"chat_screen"+user+"\" class=\"tab-pane active\" ></div>");
 			
 			socket.emit("showMessages", {'user1':userName,'user2':user});
@@ -167,6 +167,21 @@
 				$('#sendMessage').focus().click();
 			}
 		}); 
+	   $( "#tabs" ).on( "click",'span.close.close-tab', function() {
+		   var str=$(this).parent().parent().attr('id');
+		   var user=str.substring(2);
+		   var tab=$(this).parent().parent();
+		   var prev_tab=tab.prev('li');
+		   var screen=$('#chat_screen'+user);
+		   var prev_screen=screen.prev('div');
+		   var active=tab.hasClass('active');
+		   tab.remove();
+		   screen.remove();
+		   if(active){
+			   prev_tab.addClass('active');
+			   prev_screen.addClass('active');
+		   }
+		});
    });
    
    function updateTimeText(){

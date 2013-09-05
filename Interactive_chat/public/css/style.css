@@ -61,3 +61,8 @@ tr.selectable {
 tr.selectable:hover td {
   background-color: #FFFFAA;
 }
+/*-----------------*/
+.close-tab{
+	margin-left:20px;
+    
+  }
