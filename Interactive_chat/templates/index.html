@@ -171,16 +171,24 @@
 		   var str=$(this).parent().parent().attr('id');
 		   var user=str.substring(2);
 		   var tab=$(this).parent().parent();
-		   var prev_tab=tab.prev('li');
 		   var screen=$('#chat_screen'+user);
-		   var prev_screen=screen.prev('div');
 		   var active=tab.hasClass('active');
+		   
+		   if(active){
+			   prox_tab=tab.next('li');
+			   if(prox_tab[0]){
+				   prox_screen=screen.next('div');
+			   }
+			   else{
+				   prox_tab=tab.prev('li');
+				   prox_screen=screen.prev('div');
+			   }
+			   prox_tab.addClass('active');
+			   prox_screen.addClass('active');
+		   }
 		   tab.remove();
 		   screen.remove();
-		   if(active){
-			   prev_tab.addClass('active');
-			   prev_screen.addClass('active');
-		   }
+		  
 		});
    });
    
